@@ -1,13 +1,15 @@
+// serverrest.provider.ts
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { ServerRest } from './serverRest.interface';
 import { UsersProvider } from '../../users/core/users.provider.interface';
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { AuthProvider } from 'src/auth/core/auth.provider.interface';
 import { CreateUserDto } from 'src/users/adapters/dtos/create-user.dto';
 import { CreateUserResponse } from 'src/users/core/users.interface';
 import { LoginResponse } from 'src/auth/core/auth.interface';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class ServerRestProvider implements UsersProvider, AuthProvider {
@@ -28,11 +30,16 @@ export class ServerRestProvider implements UsersProvider, AuthProvider {
       administrador: user.administrador ? 'true' : 'false',
     };
 
-    const { data }: AxiosResponse<ServerRest.CreateUserResponse> =
-      await firstValueFrom(
-        this.httpService.post(`${this.serverRestBaseUrl}/usuarios`, paylod),
-      );
-    return { message: data.message };
+    try {
+      const { data }: AxiosResponse<ServerRest.CreateUserResponse> =
+        await firstValueFrom(
+          this.httpService.post(`${this.serverRestBaseUrl}/usuarios`, paylod),
+        );
+
+      return { message: data.message };
+    } catch (error) {
+      throw new BadRequestException(error.response.data);
+    }
   }
 
   async login(user: ServerRest.LoginRequest): Promise<LoginResponse> {

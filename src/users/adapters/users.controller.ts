@@ -15,6 +15,7 @@ export class UsersController {
     status: 201,
     description: 'The user has been successfully created.',
   })
+  @ApiResponse({ status: 400, description: 'This email is already being used' })
   create(@Body() createUserDto: CreateUserDto): Promise<CreateUserResponse> {
     return this.usersService.execute(createUserDto);
   }
